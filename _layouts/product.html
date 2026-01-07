@@ -1,0 +1,19 @@
+---
+layout: default
+---
+
+<article class="product-page">
+  <div class="container">
+    <header class="product-header">
+      <span class="product-icon">{{ page.icon }}</span>
+      <h1>{{ page.title }}</h1>
+      <p class="product-tagline">{{ page.tagline }}</p>
+      <div class="product-actions">
+        <a href="{{ page.github }}" class="btn btn-primary">View on GitHub</a>
+        <a href="{{ page.docs }}" class="btn btn-secondary">Documentation</a>
+      </div>
+    </header>
+    
+    {{ content }}
+  </div>
+</article>

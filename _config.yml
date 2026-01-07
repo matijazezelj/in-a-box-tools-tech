@@ -1,0 +1,58 @@
+# Site settings
+title: In a Box Tools
+description: Production-ready open source infrastructure stacks. One command. Zero complexity.
+baseurl: ""
+url: "https://in-a-box-tools.tech"
+
+# Author
+author:
+  name: Matija Zezelj
+  email: matija@inthebox.tech
+  github: matijazezelj
+  reddit: matijaz
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Theme
+remote_theme: pages-themes/minimal@v0.2.0
+
+# Plugins
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Collections
+collections:
+  products:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "products"
+    values:
+      layout: product
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor
+  - .bundle
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Products
+    url: /#products
+  - title: About
+    url: /about/
+  - title: GitHub
+    url: https://github.com/matijazezelj

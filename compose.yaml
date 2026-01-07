@@ -1,0 +1,9 @@
+services:
+  in-a-box-tools-tech:
+    build: .
+    container_name: in-a-box-tools-tech
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    labels:
+      - "com.in-a-box-tools.service=website"
