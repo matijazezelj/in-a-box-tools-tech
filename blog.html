@@ -1,0 +1,44 @@
+---
+layout: default
+title: Blog
+description: News, updates, and deep dives on infrastructure tooling
+permalink: /blog/
+---
+
+<section class="blog-header">
+  <div class="container">
+    <h1>Blog</h1>
+    <p>News, updates, and deep dives on infrastructure tooling</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if site.posts.size > 0 %}
+    <div class="posts-grid">
+      {% for post in site.posts %}
+      <article class="post-card">
+        <div class="post-card-meta">
+          <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%B %d, %Y" }}</time>
+          {% if post.categories %}
+          <span class="post-category">{{ post.categories | first }}</span>
+          {% endif %}
+        </div>
+        <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+        {% if post.description %}
+        <p>{{ post.description }}</p>
+        {% else %}
+        <p>{{ post.excerpt | strip_html | truncate: 160 }}</p>
+        {% endif %}
+        <a href="{{ post.url | relative_url }}" class="read-more">Read more →</a>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-posts">
+      <p>No posts yet! Check back soon for updates on new tools and features.</p>
+      <p>In the meantime, explore our <a href="/#products">products</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>

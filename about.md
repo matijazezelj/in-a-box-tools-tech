@@ -4,11 +4,11 @@ title: About
 permalink: /about/
 ---
 
-## The Story Behind "In a Box  Tools"
+## The Story Behind "In a Box Tools"
 
-I've spent 25 years in infrastructure — starting as a sysadmin, moving through DevOps, and now working in SecOps. Along the way, I've worked on systems handling petabytes of data and hundreds of thousands of requests per second.
+I've been tinkering with infrastructure since the early 2000s — starting as a homelabber running servers in my bedroom, then turning that obsession into a career in the late 2000s. From sysadmin to DevOps to SecOps, I've worked on systems handling petabytes of data and hundreds of thousands of requests per second.
 
-And in all that time, one thing hasn't changed: **most teams have no idea how their applications actually behave in production.**
+**And in all that time, one thing hasn't changed: most teams have no idea how their applications actually behave in production.**
 
 I don't mean that as criticism. It's not their job to know the internals of Prometheus or wrestle with Loki configurations. They're busy writing features, fixing bugs, shipping code.
 
@@ -16,9 +16,23 @@ But the gap between "it works on my machine" and "it works at scale" is where ca
 
 ---
 
+## The Three Jobs Problem
+
+Here's something I've learned: **what used to take me three separate jobs worth of knowledge, I can now set up in 8 hours.**
+
+- A metrics stack? That was a job in itself at many companies.
+- A logging infrastructure? Same story.  
+- Security monitoring? Don't even get me started.
+
+But now, with containers and modern tooling, all of that complexity can be tamed. The problem is, someone still has to do the taming.
+
+That's where "In a Box" comes in.
+
+---
+
 ## Why This Exists
 
-Setting up proper infrastructure tooling is annoying. You need:
+Setting up proper infrastructure tooling is still annoying. You need:
 
 - A metrics stack (Prometheus, exporters, maybe a pushgateway)
 - A logging stack (Loki or Elasticsearch, log shippers, retention policies)
@@ -78,6 +92,12 @@ The "In a Box" family is growing. Future products might include:
 - **NIB** - Network in a Box (mesh networking)
 
 Want to see one of these? [Let me know](https://reddit.com/u/matijaz).
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=matijazezelj/oib,matijazezelj/sib&type=Date)](https://star-history.com/#matijazezelj/oib&matijazezelj/sib&Date)
 
 ---
 

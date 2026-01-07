@@ -73,6 +73,7 @@ description: Open source infrastructure stacks you can deploy with one command. 
         <div class="product-card-header">
           <span class="product-card-icon">🔭</span>
           <span class="product-badge">Observability</span>
+          <span class="github-stars" id="oib-stars">⭐ <span>--</span></span>
         </div>
         <h3>Observability in a Box</h3>
         <p class="product-card-tagline">The complete Grafana LGTM stack. Logs, metrics, traces, and profiling — configured and ready.</p>
@@ -116,6 +117,7 @@ description: Open source infrastructure stacks you can deploy with one command. 
         <div class="product-card-header">
           <span class="product-card-icon">🛡️</span>
           <span class="product-badge badge-security">Security</span>
+          <span class="github-stars" id="sib-stars">⭐ <span>--</span></span>
         </div>
         <h3>SIEM in a Box</h3>
         <p class="product-card-tagline">Runtime security monitoring with Falco. Detect threats, not just log them.</p>
@@ -249,3 +251,65 @@ description: Open source infrastructure stacks you can deploy with one command. 
     </div>
   </div>
 </section>
+
+<!-- Coming Soon Section -->
+<section class="section section-alt" id="coming-soon">
+  <div class="container">
+    <div class="section-header">
+      <h2>Coming Soon</h2>
+      <p>The "In a Box" family is growing</p>
+    </div>
+    <div class="coming-soon-grid">
+      <div class="coming-soon-card">
+        <span class="coming-soon-icon">🌐</span>
+        <h3>NIB - Network in a Box</h3>
+        <p>Network monitoring and mesh networking tools. Watch traffic, detect anomalies, visualize connections.</p>
+        <span class="coming-soon-badge">In Development</span>
+      </div>
+      <div class="coming-soon-card">
+        <span class="coming-soon-icon">🗄️</span>
+        <h3>DIB - Database in a Box</h3>
+        <p>Database observability and performance monitoring. Query analysis, slow log insights, replication health.</p>
+        <span class="coming-soon-badge">Planned</span>
+      </div>
+      <div class="coming-soon-card">
+        <span class="coming-soon-icon">💾</span>
+        <h3>BIB - Backup in a Box</h3>
+        <p>Self-hosted backup and disaster recovery. Automated snapshots, encrypted offsite copies, restore testing.</p>
+        <span class="coming-soon-badge">Planned</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonial Section -->
+<section class="section">
+  <div class="container">
+    <div class="testimonial-card">
+      <blockquote>
+        "There goes my weekend..."
+      </blockquote>
+      <p class="testimonial-context">— A redditor, upon discovering OIB</p>
+      <p class="testimonial-subtext">The best kind of problem: too many dashboards to explore.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+// Fetch GitHub stars
+async function fetchStars(repo, elementId) {
+  try {
+    const response = await fetch(`https://api.github.com/repos/matijazezelj/${repo}`);
+    if (response.ok) {
+      const data = await response.json();
+      const el = document.querySelector(`#${elementId} span`);
+      if (el) el.textContent = data.stargazers_count;
+    }
+  } catch (e) {
+    console.log('Could not fetch stars for', repo);
+  }
+}
+
+fetchStars('oib', 'oib-stars');
+fetchStars('sib', 'sib-stars');
+</script>
