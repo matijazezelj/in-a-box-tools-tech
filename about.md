@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-## The Story Behind "In a Box"
+## The Story Behind "In a Box  Tools"
 
 I've spent 25 years in infrastructure — starting as a sysadmin, moving through DevOps, and now working in SecOps. Along the way, I've worked on systems handling petabytes of data and hundreds of thousands of requests per second.
 
