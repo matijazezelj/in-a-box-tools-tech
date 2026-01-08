@@ -1,7 +1,7 @@
 ---
 layout: product
 title: "SIB - SIEM in a Box"
-tagline: "A complete security monitoring stack you can deploy with one command. Runtime detection with Falco, visualization with Grafana."
+tagline: "AI-powered SIEM in a Box with privacy controls. Runtime detection with Falco, LLM analysis, and visualization with Grafana."
 icon: "🛡️"
 github: "https://github.com/matijazezelj/sib"
 docs: "https://github.com/matijazezelj/sib#readme"
@@ -9,7 +9,7 @@ permalink: /products/sib/
 ---
 
 <section class="product-intro">
-  <p class="lead">Security monitoring shouldn't require a six-figure budget and a dedicated team. SIB provides enterprise-grade security visibility using open source tools.</p>
+  <p class="lead">Security monitoring shouldn't require a six-figure budget and a dedicated team. SIB provides enterprise-grade security visibility using open source tools, now with AI-powered alert analysis.</p>
 </section>
 
 ## ⚡ Quick Start
@@ -96,6 +96,48 @@ Filter by priority, rule name, hostname, and drill down into specific events wit
 Monitor multiple hosts with CPU, memory, disk, and network metrics. Hostname selector filters all panels to focus on individual hosts.
 
 ![Fleet Overview](/assets/images/sib/fleet-overview.png)
+
+---
+
+## 🤖 AI-Powered Alert Analysis (Beta)
+
+Got an alert but not sure what it means? SIB can analyze your security events using LLMs.
+
+```bash
+make analyze
+```
+
+You get:
+- **Attack vector explanation** — What the attacker is trying to do
+- **MITRE ATT&CK mapping** — Tactic and technique IDs
+- **Risk assessment** — Severity, confidence, impact
+- **Mitigation steps** — Immediate, short-term, long-term actions
+- **False positive assessment** — Is this real or noise?
+
+### Privacy First
+
+Your sensitive data **never leaves your network** (unless you want it to). Before sending anything to the LLM, all PII is obfuscated:
+
+| Data Type | What Happens |
+|-----------|--------------|
+| IP addresses | → `[INTERNAL-IP-1]`, `[EXTERNAL-IP-1]` |
+| Usernames | → `[USER-1]` |
+| Hostnames | → `[HOST-1]` |
+| Container IDs | → `[CONTAINER-1]` |
+| Secrets | → `[REDACTED]` |
+
+### LLM Options
+
+| Provider | Where data goes | Best for |
+|----------|----------------|----------|
+| **Ollama** (default) | Your machine | Privacy-conscious users |
+| OpenAI | OpenAI API (obfuscated) | Better quality |
+| Anthropic | Anthropic API (obfuscated) | Claude fans |
+
+Preview what gets sent before any LLM call:
+```bash
+make analyze-dry-run
+```
 
 ---
 
