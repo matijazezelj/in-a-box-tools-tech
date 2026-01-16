@@ -34,7 +34,7 @@ That's it. Open [http://localhost:3000](http://localhost:3000) and start explori
 | Stack | Components | Purpose |
 |-------|------------|---------|
 | **Logging** | Loki + Alloy | Centralized log aggregation with automatic Docker log collection |
-| **Metrics** | Prometheus + Alloy + cAdvisor | Host metrics via Alloy, container metrics via cAdvisor, endpoint probing |
+| **Metrics** | Prometheus + Alloy + cAdvisor + Blackbox Exporter | Host metrics via Alloy, container metrics via cAdvisor, endpoint probing |
 | **Tracing** | Tempo + Alloy | Distributed tracing with OpenTelemetry support |
 | **Profiling** | Pyroscope | Continuous profiling (optional: `make install-profiling`) |
 | **Visualization** | Grafana | Pre-built dashboards for all four pillars |
@@ -52,6 +52,7 @@ Once installed, your applications can send data to:
 | **Traces** | `http://localhost:4318` | OTLP HTTP |
 | **Profiles** | `http://localhost:4040` | Pyroscope SDK (optional) |
 | **Logs** | Automatic | Docker containers are auto-collected |
+| **Probing** | `http://localhost:9115` | Blackbox Exporter (localhost only) |
 
 ---
 
@@ -59,12 +60,14 @@ Once installed, your applications can send data to:
 
 OIB comes with six ready-to-use Grafana dashboards:
 
-- **System Overview** — Container CPU/memory, disk usage, network I/O
-- **Host Metrics** — Detailed host system metrics (CPU, memory, disk, network) via Alloy
-- **Logs Explorer** — Log volume, live logs, errors/warnings panel
-- **Traces Explorer** — TraceQL examples with code samples for Python, Node.js, Ruby, and PHP
-- **Profiles Explorer** — CPU, memory, and goroutine profiling with Pyroscope
-- **Request Latency** — Endpoint probing results and k6 load test metrics
+| Dashboard | Description |
+|-----------|-------------|
+| **System Overview** | Container CPU/memory, disk usage, network I/O |
+| **Host Metrics** | Detailed host system metrics (CPU, memory, disk, network) via Alloy |
+| **Logs Explorer** | Log volume, live logs, errors/warnings panel |
+| **Traces Explorer** | TraceQL examples, Python, Node.js, Ruby & PHP code samples |
+| **Profiles Explorer** | CPU, memory, and goroutine profiling with Pyroscope |
+| **Request Latency** | Endpoint probing (Blackbox), k6 load test metrics, latency percentiles |
 
 ---
 
@@ -95,22 +98,34 @@ make install              # Install all stacks
 make install-logging      # Install logging stack only
 make install-metrics      # Install metrics stack only
 make install-telemetry    # Install telemetry stack only
+make install-grafana      # Install unified Grafana
 
-# Health & Status
+# Health & Diagnostics
 make health               # Quick health check
-make status               # Show all services
-make doctor               # Diagnose common issues
+make doctor               # Diagnose common issues (Docker, ports, config)
+make status               # Show all services with health indicators
+make check-ports          # Check if required ports are available
+make validate             # Validate configuration files
 
-# Demo & Testing
-make demo                 # Generate sample data
-make demo-app             # Start demo app with PostgreSQL & Redis
-make test-load            # Run k6 load test
+# Load Testing
+make test-load            # Run k6 basic load test
+make test-stress          # Run stress test (find breaking point)
+make test-spike           # Run spike test (sudden traffic)
+make test-api             # Run API endpoint load test
+
+# Utilities
+make open                 # Open Grafana in browser
+make demo                 # Generate sample data (logs, metrics, traces)
+make demo-examples        # Run example apps and generate traffic
+make bootstrap            # Install + demo + open Grafana
+make disk-usage           # Show disk space used by OIB
+make version              # Show versions of running components
 
 # Maintenance
-make update               # Pull latest images and restart
-make latest               # Run with :latest image tags
-make logs                 # Tail all logs
-make uninstall            # Remove everything
+make update               # Pull pinned version images and restart
+make latest               # Pull and run :latest versions of all images
+make logs                 # Tail logs from all stacks
+make uninstall            # Remove all stacks and volumes (with confirmation)
 ```
 
 ---

@@ -63,12 +63,9 @@ Out of the box, SIB catches:
 |----------|----------|
 | **Credential Access** | Reading /etc/shadow, SSH key access |
 | **Container Security** | Shells in containers, privileged operations |
+| **File Integrity** | Writes to /etc, sensitive config changes |
+| **Process Anomalies** | Unexpected binaries, shell spawning |
 | **Persistence** | Cron modifications, systemd changes |
-| **Defense Evasion** | Log clearing, timestomping |
-| **Discovery** | System enumeration, network scanning |
-| **Lateral Movement** | SSH from containers, remote file copy |
-| **Exfiltration** | Curl uploads, DNS tunneling indicators |
-| **Impact** | Mass file deletion, service stopping |
 | **Cryptomining** | Mining processes, pool connections |
 
 All detection rules are mapped to **MITRE ATT&CK** techniques.
@@ -228,33 +225,48 @@ make deploy-fleet ARGS="-e deployment_strategy=docker"
 ```bash
 # Installation
 make install              # Install all stacks
-make install-detection    # Install Falco + Falcosidekick
-make install-storage      # Install Loki + Prometheus
-make install-grafana      # Install unified Grafana
+make uninstall            # Remove everything
+
+# Management
+make start                # Start all services
+make stop                 # Stop all services
+make restart              # Restart all services
+make status               # Show service status
+
+# Logs
+make logs                 # Tail all logs
+make logs-falco           # Tail Falco logs
+make logs-sidekick        # Tail Falcosidekick logs
 
 # Demo & Testing
-make demo                 # Generate sample security events
-make demo-quick           # Quick demo (fewer events)
+make demo                 # Run comprehensive security demo (~30 events)
+make demo-quick           # Run quick demo (1s delay)
+make test-alert           # Generate a test security alert
 
-# Threat Intelligence
-make update-threatintel   # Update IOC feeds
+# Threat Intel & Sigma
+make update-threatintel   # Download threat intel feeds
 make convert-sigma        # Convert Sigma rules to Falco
 
+# AI Analysis (Optional)
+make install-analysis     # Install AI analysis API
+make logs-analysis        # View analysis API logs
+
 # Fleet Management
-make deploy-fleet         # Deploy agents to all fleet hosts
+make deploy-fleet         # Deploy Falco + Alloy to all fleet hosts
 make update-rules         # Push detection rules to fleet
 make fleet-health         # Check health of all agents
+make fleet-docker-check   # Check/install Docker on fleet hosts
 make fleet-ping           # Test SSH connectivity
+make fleet-shell          # Open shell in Ansible container
+make remove-fleet         # Remove agents from fleet
 
-# Health & Status
-make health               # Quick health check
-make status               # Show all services
-make logs                 # Tail all logs
+# Remote Collectors
+make enable-remote        # Enable external access for collectors
+make deploy-collector     # Deploy collector to remote host
 
-# Maintenance
-make update               # Pull latest images and restart
-make stop                 # Stop all stacks
-make uninstall            # Remove everything
+# Utilities
+make open                 # Open Grafana in browser
+make info                 # Show all endpoints
 ```
 
 ---
