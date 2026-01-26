@@ -19,13 +19,21 @@ permalink: /products/oib/
 git clone https://github.com/matijazezelj/oib.git && cd oib
 cp .env.example .env  # Edit and set GRAFANA_ADMIN_PASSWORD
 
-# Install and explore
-make install
-make demo
-make open
+# One command to rule them all
+make bootstrap  # Install + demo + open Grafana
 ```
 
 That's it. Open [http://localhost:3000](http://localhost:3000) and start exploring your data.
+
+---
+
+## 📋 Prerequisites
+
+- **Docker** 20.10+ or **Podman** 4.0+
+- **Docker Compose** v2+
+- **Make** utility
+- **2GB+ RAM** recommended
+- **curl** for health checks
 
 ---
 
@@ -46,13 +54,32 @@ That's it. Open [http://localhost:3000](http://localhost:3000) and start explori
 
 Once installed, your applications can send data to:
 
-| Signal | Endpoint | Protocol |
-|--------|----------|----------|
-| **Traces** | `localhost:4317` | OTLP gRPC |
-| **Traces** | `http://localhost:4318` | OTLP HTTP |
-| **Profiles** | `http://localhost:4040` | Pyroscope SDK (optional) |
-| **Logs** | Automatic | Docker containers are auto-collected |
-| **Probing** | `http://localhost:9115` | Blackbox Exporter (localhost only) |
+### Public Access (External Hosts)
+
+| Service | Endpoint | Purpose |
+|---------|----------|---------|
+| **Grafana UI** | `http://<host>:3000` | Dashboards and visualization |
+| **OTLP gRPC** | `<host>:4317` | Send traces via gRPC |
+| **OTLP HTTP** | `http://<host>:4318` | Send traces via HTTP |
+
+### Localhost Only
+
+| Service | Endpoint | Purpose |
+|---------|----------|---------|
+| **Loki API** | `http://localhost:3100` | Log queries |
+| **Prometheus** | `http://localhost:9090` | Metrics queries |
+| **Tempo API** | `http://localhost:3200` | Trace queries |
+| **Pyroscope** | `http://localhost:4040` | Profiling (optional) |
+| **Blackbox** | `http://localhost:9115` | Endpoint probing |
+
+### From Docker Containers
+
+Use internal hostnames on `oib-network`:
+- `oib-prometheus:9090`
+- `oib-loki:3100`
+- `oib-tempo:3200`
+
+> **Note:** Logs from Docker containers are auto-collected by Alloy — no configuration needed.
 
 ---
 
@@ -90,6 +117,22 @@ Full distributed tracing with PostgreSQL, Redis, and HTTP spans visible.
 
 ---
 
+## ⚙️ Configuration
+
+Key environment variables in `.env`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GRAFANA_ADMIN_USER` | admin | Grafana admin username |
+| `GRAFANA_ADMIN_PASSWORD` | (required) | Grafana admin password |
+| `GRAFANA_PORT` | 3000 | Grafana port |
+| `PROMETHEUS_RETENTION_TIME` | 15d | Metrics retention period |
+| `PROMETHEUS_RETENTION_SIZE` | 5GB | Max metrics storage |
+
+Version overrides: `GRAFANA_VERSION`, `LOKI_VERSION`, `PROMETHEUS_VERSION`, `TEMPO_VERSION`, `ALLOY_VERSION`
+
+---
+
 ## 🛠️ Commands Reference
 
 ```bash
@@ -98,7 +141,9 @@ make install              # Install all stacks
 make install-logging      # Install logging stack only
 make install-metrics      # Install metrics stack only
 make install-telemetry    # Install telemetry stack only
+make install-profiling    # Install Pyroscope profiling
 make install-grafana      # Install unified Grafana
+make bootstrap            # Install + demo + open Grafana
 
 # Health & Diagnostics
 make health               # Quick health check
@@ -117,11 +162,13 @@ make test-api             # Run API endpoint load test
 make open                 # Open Grafana in browser
 make demo                 # Generate sample data (logs, metrics, traces)
 make demo-examples        # Run example apps and generate traffic
-make bootstrap            # Install + demo + open Grafana
 make disk-usage           # Show disk space used by OIB
 make version              # Show versions of running components
 
 # Maintenance
+make start                # Start all services
+make stop                 # Stop all services
+make restart              # Restart all services
 make update               # Pull pinned version images and restart
 make latest               # Pull and run :latest versions of all images
 make logs                 # Tail logs from all stacks
@@ -184,6 +231,46 @@ networks:
   oib-network:
     external: true
 ```
+
+### Docker Log Driver
+
+Send logs directly via Loki Docker driver:
+
+```yaml
+services:
+  my-app:
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+        labels: "app"
+```
+
+### Prometheus Scraping via Labels
+
+Expose metrics using Docker labels:
+
+```yaml
+services:
+  my-app:
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=8080"
+```
+
+---
+
+## 📡 Endpoint Probing
+
+OIB includes Blackbox Exporter for synthetic monitoring:
+
+- HTTP/HTTPS health checks
+- TCP port connectivity
+- ICMP ping checks
+- DNS resolution tests
+- SSL certificate validation
+
+Configure probes in `metrics/config/prometheus.yml` to monitor your endpoints.
 
 ---
 

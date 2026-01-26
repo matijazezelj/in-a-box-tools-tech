@@ -23,9 +23,20 @@ helm repo update
 helm install sib-k8s sib-k8s/sib-k8s \
   -f values-k8saudit.yaml \
   -n sib-k8s --create-namespace
+
+# Or install from source
+git clone https://github.com/matijazezelj/sib-k8s.git && cd sib-k8s
+helm install sib-k8s . -f values-k8saudit.yaml -n sib-k8s --create-namespace
 ```
 
-Access Grafana at `kubectl port-forward -n sib-k8s svc/sib-k8s-grafana 3000:80` and start monitoring.
+Access Grafana:
+```bash
+kubectl port-forward -n sib-k8s svc/sib-k8s-grafana 3000:80
+
+# Get the admin password
+kubectl get secret -n sib-k8s sib-k8s-grafana \
+  -o jsonpath="{.data.admin-password}" | base64 -d
+```
 
 ---
 
@@ -176,17 +187,10 @@ The analysis service protects sensitive data before sending to LLM providers:
 
 SIB-K8s includes pre-built dashboards:
 
-1. **SIB-K8s Overview** — Summary of all security events across your cluster
-2. **K8s Audit Events** — Kubernetes API audit analysis with drill-down capabilities
-
-Access Grafana:
-```bash
-kubectl port-forward -n sib-k8s svc/sib-k8s-grafana 3000:80
-
-# Get the admin password
-kubectl get secret -n sib-k8s sib-k8s-grafana \
-  -o jsonpath="{.data.admin-password}" | base64 -d
-```
+| Dashboard | Description |
+|-----------|-------------|
+| **SIB-K8s Overview** | Summary of all security events across your cluster |
+| **K8s Audit Events** | Kubernetes API audit analysis with drill-down capabilities |
 
 ---
 
@@ -270,6 +274,8 @@ customRules:
 - **For syscall monitoring:** Linux kernel 5.8+ (for modern_ebpf driver)
 - **For AI analysis:** Access to LLM provider (Ollama, OpenAI, or Anthropic)
 
+> **Note:** For traditional Linux infrastructure monitoring (non-Kubernetes), check out [SIB](/products/sib/) instead.
+
 ---
 
 ## 🏷️ Chart Dependencies
@@ -294,6 +300,18 @@ SIB-K8s includes pre-configured values files for different environments:
 - `values-k8saudit.yaml` — Generic K8s webhook configuration
 
 ---
+
+## 🔐 Security Hardening (Highlights)
+
+This chart ships with Kubernetes security best practices enabled by default:
+
+- `allowPrivilegeEscalation: false`
+- `readOnlyRootFilesystem: true`
+- `runAsNonRoot: true` (UID/GID 10001)
+- `capabilities.drop: [ALL]`
+- `seccompProfile: RuntimeDefault`
+
+For production: pin image tags, deploy to a dedicated namespace, and enable network policies.
 
 ## 👥 Who This Is For
 

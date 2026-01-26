@@ -1,7 +1,7 @@
 ---
 layout: product
 title: "SIB - SIEM in a Box"
-tagline: "AI-powered SIEM in a Box with privacy controls. Runtime detection with Falco, LLM analysis, and visualization with Grafana."
+tagline: "One-command security monitoring with Falco and VictoriaLogs. Runtime detection, optional AI analysis, and Grafana dashboards."
 icon: "🛡️"
 github: "https://github.com/matijazezelj/sib"
 docs: "https://github.com/matijazezelj/sib#readme"
@@ -9,7 +9,7 @@ permalink: /products/sib/
 ---
 
 <section class="product-intro">
-  <p class="lead">Security monitoring shouldn't require a six-figure budget and a dedicated team. SIB provides enterprise-grade security visibility using open source tools, now with AI-powered alert analysis.</p>
+  <p class="lead">Security monitoring shouldn't require a six-figure budget and a dedicated team. SIB provides enterprise-grade security visibility using open source tools, with a fast VictoriaMetrics stack by default and optional AI-powered alert analysis.</p>
 </section>
 
 ## ⚡ Quick Start
@@ -19,8 +19,13 @@ permalink: /products/sib/
 git clone https://github.com/matijazezelj/sib.git && cd sib
 cp .env.example .env
 
-# Install and explore
+# Install everything (auto-configures based on STACK)
 make install
+
+# Verify the pipeline
+./scripts/test-pipeline.sh
+
+# Generate demo security events
 make demo
 ```
 
@@ -28,7 +33,33 @@ Open Grafana at [http://localhost:3000](http://localhost:3000) and watch securit
 
 ---
 
-## � How It Works
+## 🗄️ Storage Backend
+
+SIB supports two storage stacks. Choose one via `STACK` in `.env`:
+
+| Stack | Components | Best For |
+|-------|------------|----------|
+| **`vm`** (default) | VictoriaLogs + VictoriaMetrics + node_exporter | Low RAM usage, faster queries, recommended |
+| **`grafana`** | Loki + Prometheus + Alloy | Grafana ecosystem, native integrations |
+
+```bash
+# In .env
+STACK=vm        # Default - VictoriaMetrics ecosystem
+# STACK=grafana # Alternative - Grafana ecosystem
+```
+
+---
+
+## 📋 Prerequisites
+
+- **Docker** CE 20.10+ or **Podman** 4.0+ (rootful mode)
+- **Docker Compose** v2+
+- **Linux kernel** 5.8+ (for eBPF support)
+- **Make** utility
+
+---
+
+## 🧠 How It Works
 
 > **Not a network sniffer!** SIB uses Falco's eBPF-based syscall monitoring — it watches what programs do at the kernel level, not network packets. No mirror ports, TAPs, or bridge interfaces needed. Just install on any Linux host with kernel 5.8+ and it sees everything that host does.
 
@@ -42,14 +73,15 @@ Open Grafana at [http://localhost:3000](http://localhost:3000) and watch securit
 
 ---
 
-## �🛡️ What You Get
+## 🛡️ What You Get
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | **Detection** | Falco | Runtime security using eBPF syscall monitoring |
 | **Routing** | Falcosidekick | Alert routing to 50+ destinations |
-| **Storage** | Loki | Log aggregation optimized for security events |
-| **Metrics** | Prometheus | Metrics collection and alerting |
+| **Storage** | VictoriaLogs (default) or Loki | Log aggregation optimized for security events |
+| **Metrics** | VictoriaMetrics (default) or Prometheus | Metrics collection and alerting |
+| **Host Metrics** | node_exporter | Host metrics for fleet views (VM stack) |
 | **Visualization** | Grafana | Pre-built security dashboards |
 | **Threat Intel** | Multiple feeds | Automatic IOC updates |
 
@@ -69,6 +101,19 @@ Out of the box, SIB catches:
 | **Cryptomining** | Mining processes, pool connections |
 
 All detection rules are mapped to **MITRE ATT&CK** techniques.
+
+---
+
+## 🔌 Access Endpoints
+
+Once installed, you can access:
+
+| Service | Endpoint | Notes |
+|---------|----------|-------|
+| **Grafana** | `http://localhost:3000` | Default credentials: admin/admin |
+| **Falcosidekick API** | `http://localhost:2801` | Alert routing status |
+| **VictoriaLogs** | `http://localhost:9428` | VM stack only |
+| **Loki** | `http://localhost:3100` | Grafana stack only |
 
 ---
 
@@ -101,7 +146,7 @@ Monitor multiple hosts with CPU, memory, disk, and network metrics. Hostname sel
 Got an alert but not sure what it means? SIB can analyze your security events using LLMs.
 
 ```bash
-make analyze
+make install-analysis
 ```
 
 You get:
@@ -143,7 +188,7 @@ make analyze-dry-run
 Bring your existing detection rules. SIB includes a converter that transforms Sigma rules into:
 
 1. **Falco rules** — For runtime detection
-2. **LogQL alerts** — For log-based detection in Loki
+2. **LogsQL alerts** — For log-based detection in VictoriaLogs (or LogQL for Loki when using the Grafana stack)
 
 ```bash
 make convert-sigma
@@ -179,9 +224,9 @@ Got more than one server? SIB includes Ansible-based fleet management — no loc
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    SIB Central Server                    │
-│  ┌─────────┐ ┌──────┐ ┌────────────┐ ┌─────────┐       │
-│  │ Grafana │ │ Loki │ │ Prometheus │ │Sidekick │       │
-│  └─────────┘ └──────┘ └────────────┘ └─────────┘       │
+│  ┌─────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────┐       │
+│  │ Grafana │ │ Log Storage  │ │ Metrics DB   │ │Sidekick │       │
+│  └─────────┘ └──────────────┘ └──────────────┘ └─────────┘       │
 └─────────────────────────▲──────────────▲────────────────┘
                           │              │
      ┌────────────────────┼──────────────┼────────────────┐
@@ -232,6 +277,7 @@ make start                # Start all services
 make stop                 # Stop all services
 make restart              # Restart all services
 make status               # Show service status
+make health               # Verify all services operational
 
 # Logs
 make logs                 # Tail all logs
