@@ -81,6 +81,11 @@ Runtime security monitoring with Falco, MITRE ATT&CK mapping, Sigma rule support
 
 [Learn more →](/products/sib/)
 
+### 🌐 NIB - NIDS in a Box
+Network intrusion detection with Suricata IDS and CrowdSec automated blocking. 40,000+ signatures, TLS fingerprinting, router integration, and community threat intelligence.
+
+[Learn more →](/products/nib/)
+
 ---
 
 ## What's Next
@@ -89,7 +94,6 @@ The "In a Box" family is growing. Future products might include:
 
 - **CIB** - CI/CD in a Box (self-hosted GitOps)
 - **BIB** - Backup in a Box (disaster recovery)
-- **NIB** - Network in a Box (mesh networking)
 
 Want to see one of these? [Let me know](https://reddit.com/u/matijaz).
 
