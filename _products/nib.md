@@ -42,6 +42,18 @@ Open Grafana at [http://localhost:3001](http://localhost:3001) and explore four 
 
 > **Note**: Suricata requires `network_mode: host` and `NET_ADMIN` + `NET_RAW` capabilities for packet capture. CrowdSec's firewall bouncer requires `NET_ADMIN` for iptables access.
 
+### Hardware Sizing by Link Speed
+
+| Link Speed | CPU | RAM | Storage | Example Hardware |
+|------------|-----|-----|---------|------------------|
+| **100 Mbps** | 2 cores | 2 GB | 20 GB | Raspberry Pi 4, any old PC |
+| **500 Mbps** | 4 cores | 4 GB | 50 GB | Intel N100 mini PC, NUC |
+| **1 Gbps** | 4-6 cores | 8 GB | 100 GB | Intel N305, i5 NUC, old desktop |
+| **2.5 Gbps** | 8 cores | 16 GB | 200 GB | i5/i7 desktop, Ryzen 5 |
+| **10 Gbps** | 16+ cores | 32 GB | 500 GB+ | Xeon/EPYC server |
+
+**NIC recommendations:** Intel NICs (i210, i350) for 1G, Intel i225-V for 2.5G, Intel X520/Mellanox ConnectX for 10G.
+
 ---
 
 ## 🧠 How It Works
