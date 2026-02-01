@@ -12,6 +12,32 @@ permalink: /products/nib/
   <p class="lead">Most network security tools detect and alert — they assume someone is watching. NIB detects, blocks, and shares: Suricata finds threats, CrowdSec blocks them automatically, and the community network means you benefit from attacks detected by millions of other nodes before they reach you.</p>
 </section>
 
+## 🎯 IDS vs IPS: What NIB Actually Does
+
+**IDS** = Intrusion **Detection** System (passive monitoring, alerts only)  
+**IPS** = Intrusion **Prevention** System (inline blocking, drops packets in real-time)
+
+NIB operates in two modes:
+
+| Mode | How It Works | Blocking | Best For |
+|------|--------------|----------|----------|
+| **Local** (default) | NIB runs on the host you protect | iptables blocks on that host | Internet-facing servers |
+| **Sensor** (mirror/SPAN) | NIB receives mirrored traffic | Pushes bans to router/firewall | Dedicated IDS, full network visibility |
+
+### Sensor Mode (Port Mirror)
+
+When using a **port mirror/SPAN**, NIB is:
+- ✅ **IDS**: Suricata detects threats in real-time
+- ⚠️ **Delayed IPS**: CrowdSec pushes blocks to your router, but it's **not instant** — the first packets get through before the ban kicks in (1-5 seconds)
+
+This is **not** inline IPS. For real-time packet dropping, traffic would need to flow *through* NIB.
+
+### Local Mode
+
+When NIB runs directly on a server (not mirrored), the iptables bouncer **is** a real IPS for that host.
+
+---
+
 ## ⚡ Quick Start
 
 ```bash
