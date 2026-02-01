@@ -201,6 +201,75 @@ Key environment variables in `.env`:
 | `CROWDSEC_ENROLL_KEY` | (none) | CrowdSec community enrollment key |
 | `GRAFANA_PORT` | 3001 | Grafana port (avoids SIB conflict on 3000) |
 | `ROUTER_TYPE` | (none) | Router type for sensor mode sync |
+| `PRIVACY_MODE` | (none) | Set to `alerts-only` for privacy-conscious deployments |
+
+---
+
+## 🔒 Privacy Mode
+
+By default, NIB ships full protocol metadata to storage (DNS queries, HTTP URLs, TLS SNI, flow records). For privacy-conscious deployments, restrict what reaches dashboards:
+
+```bash
+# In .env
+PRIVACY_MODE=alerts-only
+```
+
+**What `alerts-only` does:**
+- Only `alert` and `stats` events are shipped to VictoriaLogs
+- DNS, HTTP, TLS, flow events are dropped at the Vector level
+- Alert events keep: 5-tuple (src/dst IP + port, protocol), timestamp, signature ID/name, severity, action, community ID
+- Alert events strip: app-layer fields (`http.*`, `tls.*`, `dns.*`), payload, packet data, alert metadata
+- Suricata still logs everything locally (CrowdSec needs the full stream for behavioral detection)
+
+**Dashboard impact:**
+| Dashboard | Status |
+|-----------|--------|
+| Network Security Overview | Works (uses alert data) |
+| CrowdSec Decisions | Works (uses alert + stats) |
+| DNS Analysis | **Empty** (dns events not shipped) |
+| TLS & Fingerprints | **Empty** (tls events not shipped) |
+
+---
+
+## 🔐 Security Hardening
+
+NIB runs with elevated privileges — it's part of your trust boundary. For production deployments:
+
+- **Threat Model** — What NIB detects, what it doesn't, and what happens if NIB itself is compromised
+- **Production Checklist** — Step-by-step hardening checklist
+- **Known Limitations** — WiFi capture, NIC offloading, false positives, blocking collateral
+
+Run `make audit` to verify your security posture:
+
+```bash
+make audit
+```
+
+### Security Defaults
+
+- Suricata runs with `network_mode: host` and elevated capabilities for packet capture
+- CrowdSec's firewall bouncer needs `NET_ADMIN` to manage iptables rules
+- VictoriaLogs is bound to localhost by default
+- CrowdSec API is bound to localhost by default
+- Grafana has anonymous access disabled, sign-up disabled
+- Admin password is auto-generated on first `make install`
+- All containers use `no-new-privileges` and `cap_drop: ALL` with only required capabilities added back
+
+---
+
+## 🔗 Running NIB + SIB Together
+
+NIB and SIB complement each other:
+
+- **SIB** monitors what happens **inside** your hosts (syscalls, file access, process execution)
+- **NIB** monitors what happens **on the network** (traffic, DNS, TLS, attacks)
+
+They can run side by side on the same host:
+- Separate Docker networks (`sib-network` vs `nib-network`)
+- Separate storage backends
+- Separate Grafana instances (SIB on port 3000, NIB on port 3001)
+
+Or combine dashboards into a single Grafana by adding the other's datasource.
 
 ---
 
@@ -246,6 +315,48 @@ make test-dns             # Generate test DNS queries
 make open                 # Open Grafana in browser
 make logs                 # Tail all service logs
 make info                 # Show endpoints and credentials
+make audit                # Security posture check
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Suricata not capturing traffic
+
+```bash
+# Check the interface name
+ip link show
+
+# Verify Suricata sees packets
+make shell-suricata
+suricatasc -c "iface-stat default" /var/run/suricata/suricata-command.socket
+```
+
+### No alerts in Grafana
+
+```bash
+# Trigger a test alert
+make test-alert
+
+# Check Vector is shipping logs
+make logs-vector
+
+# Check VictoriaLogs received data
+curl -s "http://localhost:9428/select/logsql/query?query=*&limit=5"
+```
+
+### CrowdSec bouncer not blocking
+
+```bash
+# Check bouncer is connected
+make bouncer-status
+
+# Check active decisions
+make decisions
+
+# Check iptables rules
+sudo iptables -L crowdsec-blacklists -n
 ```
 
 ---
