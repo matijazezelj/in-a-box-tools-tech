@@ -81,10 +81,20 @@ Runtime security monitoring with Falco, MITRE ATT&CK mapping, Sigma rule support
 
 [Learn more →](/products/sib/)
 
+### ☸️ SIB-K8s - SIEM in a Box for Kubernetes
+Kubernetes-specific security monitoring with multi-cloud audit support (EKS, GKE, AKS), AI-powered analysis with privacy obfuscation, and Helm chart deployment.
+
+[Learn more →](/products/sib-k8s/)
+
 ### 🌐 NIB - NIDS in a Box
 Network intrusion detection with Suricata IDS and CrowdSec automated blocking. 40,000+ signatures, TLS fingerprinting, router integration, and community threat intelligence.
 
 [Learn more →](/products/nib/)
+
+### 🗺️ AIB - Assets in a Box
+Infrastructure asset discovery and dependency mapping. Parse Terraform, Kubernetes, and Ansible to build a unified graph with blast radius analysis and certificate tracking.
+
+[Learn more →](/products/aib/)
 
 ---
 
@@ -92,7 +102,7 @@ Network intrusion detection with Suricata IDS and CrowdSec automated blocking. 4
 
 The "In a Box" family is growing. Future products might include:
 
-- **CIB** - CI/CD in a Box (self-hosted GitOps)
+- **DIB** - Database in a Box (database observability and performance monitoring)
 - **BIB** - Backup in a Box (disaster recovery)
 
 Want to see one of these? [Let me know](https://reddit.com/u/matijaz).
@@ -101,7 +111,7 @@ Want to see one of these? [Let me know](https://reddit.com/u/matijaz).
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=matijazezelj/oib,matijazezelj/sib&type=Date)](https://star-history.com/#matijazezelj/oib&matijazezelj/sib&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=matijazezelj/oib,matijazezelj/sib,matijazezelj/sib-k8s,matijazezelj/nib,matijazezelj/aib&type=Date)](https://star-history.com/#matijazezelj/oib&matijazezelj/sib&matijazezelj/sib-k8s&matijazezelj/nib&matijazezelj/aib&Date)
 
 ---
 
