@@ -419,6 +419,10 @@ pre code {
   background: var(--color-secondary);
 }
 
+.badge-infra {
+  background: var(--color-accent);
+}
+
 .product-card h3 {
   font-size: 1.5rem;
   margin-bottom: var(--space-sm);

@@ -16,7 +16,7 @@ description: Open source infrastructure stacks you can deploy with one command. 
       </div>
       <div class="hero-stats">
         <div class="stat">
-          <span class="stat-value">4</span>
+          <span class="stat-value">5</span>
           <span class="stat-label">Products</span>
         </div>
         <div class="stat">
@@ -244,6 +244,50 @@ description: Open source infrastructure stacks you can deploy with one command. 
         </div>
       </div>
 
+      <!-- AIB Card -->
+      <div class="product-card">
+        <div class="product-card-header">
+          <span class="product-card-icon">🗺️</span>
+          <span class="product-badge badge-infra">Infrastructure</span>
+          <span class="github-stars" id="aib-stars">⭐ <span>--</span></span>
+        </div>
+        <h3>Assets in a Box</h3>
+        <p class="product-card-tagline">Infrastructure asset discovery and dependency mapping with blast radius analysis.</p>
+        <div class="product-features">
+          <div class="feature">
+            <span class="feature-icon">🏗️</span>
+            <span>Terraform, K8s, Ansible</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🔗</span>
+            <span>Dependency graph mapping</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">💥</span>
+            <span>Blast radius analysis</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🔐</span>
+            <span>TLS certificate tracking</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🌐</span>
+            <span>Interactive web UI</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📡</span>
+            <span>REST API with auth</span>
+          </div>
+        </div>
+        <div class="product-code">
+          <code>make build && ./bin/aib serve</code>
+        </div>
+        <div class="product-card-actions">
+          <a href="{{ '/products/aib/' | relative_url }}" class="btn btn-primary">Learn More</a>
+          <a href="https://github.com/matijazezelj/aib" class="btn btn-secondary">GitHub</a>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -336,6 +380,7 @@ description: Open source infrastructure stacks you can deploy with one command. 
         <a href="https://github.com/matijazezelj/oib" class="btn btn-primary btn-large">Start with OIB</a>
         <a href="https://github.com/matijazezelj/sib" class="btn btn-secondary btn-large">Start with SIB</a>
         <a href="https://github.com/matijazezelj/nib" class="btn btn-secondary btn-large">Start with NIB</a>
+        <a href="https://github.com/matijazezelj/aib" class="btn btn-secondary btn-large">Start with AIB</a>
       </div>
     </div>
   </div>
@@ -397,4 +442,5 @@ fetchStars('oib', 'oib-stars');
 fetchStars('sib', 'sib-stars');
 fetchStars('sib-k8s', 'sib-k8s-stars');
 fetchStars('nib', 'nib-stars');
+fetchStars('aib', 'aib-stars');
 </script>

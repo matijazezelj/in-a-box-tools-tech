@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161b22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffa657;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="40" y="40" width="1120" height="550" rx="16" fill="none" stroke="#30363d" stroke-width="2"/>
+  <text x="600" y="240" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="72" font-weight="800" fill="#f0f6fc">Infrastructure</text>
+  <text x="600" y="330" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="72" font-weight="800" fill="url(#grad)">In a Box</text>
+  <text x="600" y="400" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="24" fill="#8b949e">Production-ready open source infrastructure stacks</text>
+  <text x="600" y="440" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="24" fill="#8b949e">One command. Zero complexity.</text>
+  <text x="600" y="520" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="20" fill="#58a6ff">in-a-box-tools.tech</text>
+</svg>
