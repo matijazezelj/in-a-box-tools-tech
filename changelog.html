@@ -1,0 +1,158 @@
+---
+layout: default
+title: Changelog
+description: Latest releases and updates across all In a Box Tools products
+permalink: /changelog/
+---
+
+<section class="blog-header">
+  <div class="container">
+    <h1>Changelog</h1>
+    <p>Latest releases across all products</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="changelog-filters">
+      <button class="changelog-filter active" data-repo="all">All</button>
+      <button class="changelog-filter" data-repo="oib">OIB</button>
+      <button class="changelog-filter" data-repo="sib">SIB</button>
+      <button class="changelog-filter" data-repo="sib-k8s">SIB-K8s</button>
+      <button class="changelog-filter" data-repo="nib">NIB</button>
+      <button class="changelog-filter" data-repo="aib">AIB</button>
+    </div>
+    <div id="changelog-loading" class="no-posts">
+      <p>Loading releases...</p>
+    </div>
+    <div id="changelog-list" class="posts-grid"></div>
+    <div id="changelog-empty" class="no-posts" style="display: none;">
+      <p>No releases found for this product yet.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  var repos = ['oib', 'sib', 'sib-k8s', 'nib', 'aib'];
+  var allReleases = [];
+  var activeFilter = 'all';
+  var loaded = 0;
+
+  var repoLabels = {
+    'oib': { name: 'OIB', icon: '🔭' },
+    'sib': { name: 'SIB', icon: '🛡️' },
+    'sib-k8s': { name: 'SIB-K8s', icon: '☸️' },
+    'nib': { name: 'NIB', icon: '🌐' },
+    'aib': { name: 'AIB', icon: '🗺️' }
+  };
+
+  repos.forEach(function(repo) {
+    fetch('https://api.github.com/repos/matijazezelj/' + repo + '/releases?per_page=5')
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(releases) {
+        releases.forEach(function(release) {
+          allReleases.push({
+            repo: repo,
+            name: release.name || release.tag_name,
+            tag: release.tag_name,
+            body: release.body || '',
+            date: release.published_at,
+            url: release.html_url
+          });
+        });
+      })
+      .catch(function() {})
+      .finally(function() {
+        loaded++;
+        if (loaded === repos.length) {
+          allReleases.sort(function(a, b) {
+            return new Date(b.date) - new Date(a.date);
+          });
+          render();
+        }
+      });
+  });
+
+  // Also fetch recent commits as fallback for repos without releases
+  repos.forEach(function(repo) {
+    fetch('https://api.github.com/repos/matijazezelj/' + repo + '/commits?per_page=3')
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(commits) {
+        // Only add commits if this repo had no releases
+        var hasReleases = allReleases.some(function(r) { return r.repo === repo; });
+        if (!hasReleases && commits.length > 0) {
+          commits.forEach(function(commit) {
+            allReleases.push({
+              repo: repo,
+              name: commit.commit.message.split('\n')[0],
+              tag: 'commit',
+              body: '',
+              date: commit.commit.author.date,
+              url: commit.html_url
+            });
+          });
+        }
+      })
+      .catch(function() {});
+  });
+
+  document.querySelectorAll('.changelog-filter').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelector('.changelog-filter.active').classList.remove('active');
+      this.classList.add('active');
+      activeFilter = this.dataset.repo;
+      render();
+    });
+  });
+
+  function render() {
+    document.getElementById('changelog-loading').style.display = 'none';
+    var container = document.getElementById('changelog-list');
+    var empty = document.getElementById('changelog-empty');
+
+    var filtered = activeFilter === 'all'
+      ? allReleases
+      : allReleases.filter(function(r) { return r.repo === activeFilter; });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+    var html = '';
+
+    filtered.forEach(function(release) {
+      var label = repoLabels[release.repo];
+      var date = new Date(release.date).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      // Convert basic markdown to HTML (bold, code, links)
+      var body = release.body
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>')
+        .substring(0, 500);
+      if (release.body.length > 500) body += '...';
+
+      html += '<article class="post-card">';
+      html += '<div class="post-card-meta">';
+      html += '<time>' + date + '</time>';
+      html += '<span class="post-category">' + label.icon + ' ' + label.name + '</span>';
+      if (release.tag !== 'commit') {
+        html += '<span class="post-category">' + release.tag + '</span>';
+      }
+      html += '</div>';
+      html += '<h2><a href="' + release.url + '">' + release.name + '</a></h2>';
+      if (body) html += '<p>' + body + '</p>';
+      html += '<a href="' + release.url + '" class="read-more">View on GitHub →</a>';
+      html += '</article>';
+    });
+
+    container.innerHTML = html;
+  }
+})();
+</script>

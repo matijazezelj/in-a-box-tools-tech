@@ -84,24 +84,7 @@ Open Grafana at [http://localhost:3001](http://localhost:3001) and explore four 
 
 ## 🧠 How It Works
 
-```
-Network packets on eth0
-    │
-    ▼
-Suricata (AF_PACKET, host network) ──→ EVE JSON (Docker volume)
-                                            │
-                             ┌──────────────┼──────────────┐
-                             ▼              ▼              ▼
-                       CrowdSec        Vector          fast.log
-                       (Behavioral     (Log shipping   (Quick
-                        Detection)      to storage)     review)
-                            │              │
-                            ▼              ▼
-                       Firewall       VictoriaLogs ──→ Grafana
-                       Bouncer        (Log storage)    (Dashboards)
-                       (iptables
-                        DROP)
-```
+![NIB Architecture](/assets/images/nib/architecture.svg)
 
 1. **Detect**: Suricata inspects every packet with 40,000+ signatures and 20+ protocol parsers
 2. **Block**: CrowdSec automatically bans attacking IPs — on the host, on your router, or at your CDN

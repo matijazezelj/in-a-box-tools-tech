@@ -1,0 +1,115 @@
+---
+layout: default
+title: Search
+description: Search across all In a Box Tools products and documentation
+permalink: /search/
+---
+
+<section class="blog-header">
+  <div class="container">
+    <h1>Search</h1>
+    <div class="search-box">
+      <input type="text" id="search-input" class="search-input" placeholder="Search products, docs, blog posts..." autofocus>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div id="search-results" class="posts-grid"></div>
+    <div id="search-empty" class="no-posts" style="display: none;">
+      <p>No results found. Try a different search term.</p>
+      <p>Or explore our <a href="/#products">products</a>.</p>
+    </div>
+    <div id="search-initial" class="no-posts">
+      <p>Start typing to search across all products, documentation, and blog posts.</p>
+    </div>
+  </div>
+</section>
+
+<script src="https://unpkg.com/lunr@2.3.9/lunr.min.js"></script>
+<script>
+(function() {
+  var searchInput = document.getElementById('search-input');
+  var resultsContainer = document.getElementById('search-results');
+  var emptyState = document.getElementById('search-empty');
+  var initialState = document.getElementById('search-initial');
+  var searchIndex, searchData;
+
+  // Load search data
+  fetch('{{ "/search.json" | relative_url }}')
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      searchData = data;
+      searchIndex = lunr(function() {
+        this.ref('url');
+        this.field('title', { boost: 10 });
+        this.field('content');
+        this.field('category');
+
+        data.forEach(function(doc) {
+          this.add(doc);
+        }, this);
+      });
+
+      // Check for query param
+      var params = new URLSearchParams(window.location.search);
+      var q = params.get('q');
+      if (q) {
+        searchInput.value = q;
+        performSearch(q);
+      }
+    });
+
+  var debounceTimer;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() {
+      performSearch(searchInput.value);
+    }, 200);
+  });
+
+  function performSearch(query) {
+    if (!query || query.length < 2) {
+      resultsContainer.innerHTML = '';
+      emptyState.style.display = 'none';
+      initialState.style.display = query.length === 0 ? 'block' : 'none';
+      return;
+    }
+    initialState.style.display = 'none';
+
+    var results = searchIndex.search(query + '~1');
+    if (results.length === 0) {
+      // Try without fuzzy
+      results = searchIndex.search(query + '*');
+    }
+
+    if (results.length === 0) {
+      resultsContainer.innerHTML = '';
+      emptyState.style.display = 'block';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    var html = '';
+    results.forEach(function(result) {
+      var item = searchData.find(function(d) { return d.url === result.ref; });
+      if (!item) return;
+
+      var snippet = item.content.substring(0, 200) + '...';
+      var categoryLabel = item.category === 'product' ? 'Product' : item.category === 'blog' ? 'Blog' : 'Page';
+
+      html += '<article class="post-card">';
+      html += '<div class="post-card-meta">';
+      html += '<span class="post-category">' + categoryLabel + '</span>';
+      html += '</div>';
+      html += '<h2><a href="' + item.url + '">' + item.title + '</a></h2>';
+      html += '<p>' + snippet + '</p>';
+      html += '<a href="' + item.url + '" class="read-more">View page →</a>';
+      html += '</article>';
+    });
+
+    resultsContainer.innerHTML = html;
+  }
+})();
+</script>

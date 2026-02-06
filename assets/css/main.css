@@ -984,6 +984,112 @@ pre code {
   margin-bottom: var(--space-2xl);
 }
 
+/* Search */
+.search-box {
+  max-width: 500px;
+  margin: var(--space-lg) auto 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  font-size: 1.1rem;
+  font-family: var(--font-sans);
+  background: var(--color-bg-card);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.nav-search {
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+
+/* Changelog */
+.changelog-filters {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.changelog-filter {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.changelog-filter:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.changelog-filter.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg);
+}
+
+/* Tech / Powered By Grid */
+.tech-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-md);
+}
+
+.tech-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: all 0.2s ease;
+}
+
+.tech-badge:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.tech-icon {
+  font-size: 1.3rem;
+}
+
+.tech-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.tech-role {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hero h1 {

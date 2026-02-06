@@ -1,0 +1,27 @@
+---
+layout: null
+---
+[
+  {% for product in site.products %}
+  {
+    "title": {{ product.title | jsonify }},
+    "url": {{ product.url | relative_url | jsonify }},
+    "content": {{ product.content | strip_html | truncatewords: 200 | jsonify }},
+    "category": "product"
+  }{% unless forloop.last %},{% endunless %}
+  {% endfor %},
+  {% for post in site.posts %}
+  {
+    "title": {{ post.title | jsonify }},
+    "url": {{ post.url | relative_url | jsonify }},
+    "content": {{ post.content | strip_html | truncatewords: 200 | jsonify }},
+    "category": "blog"
+  }{% unless forloop.last %},{% endunless %}
+  {% endfor %},
+  {
+    "title": "About",
+    "url": {{ "/about/" | relative_url | jsonify }},
+    "content": {{ site.pages | where: "title", "About" | map: "content" | first | strip_html | truncatewords: 200 | jsonify }},
+    "category": "page"
+  }
+]
