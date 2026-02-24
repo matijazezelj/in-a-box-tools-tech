@@ -78,7 +78,15 @@ Open Grafana at [http://localhost:3001](http://localhost:3001) and explore four 
 | **2.5 Gbps** | 8 cores | 16 GB | 200 GB | i5/i7 desktop, Ryzen 5 |
 | **10 Gbps** | 16+ cores | 32 GB | 500 GB+ | Xeon/EPYC server |
 
-**NIC recommendations:** Intel NICs (i210, i350) for 1G, Intel i225-V for 2.5G, Intel X520/Mellanox ConnectX for 10G.
+**NIC recommendations:**
+- **1 Gbps**: Any Intel NIC (i210, i350) — avoid Realtek for high packet rates
+- **2.5 Gbps**: Intel i225-V, Realtek RTL8125
+- **10 Gbps**: Intel X520/X540, Mellanox ConnectX-3/4 (requires kernel drivers)
+
+**Notes:**
+- VMs work great — just ensure virtio or SR-IOV passthrough for high speeds
+- WiFi capture is limited — no promiscuous mode on most drivers
+- 10 Gbps requires careful tuning (RSS, CPU affinity, ring buffers)
 
 ---
 
@@ -96,7 +104,8 @@ Open Grafana at [http://localhost:3001](http://localhost:3001) and explore four 
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Network IDS** | Suricata 7.0 | Deep packet inspection with 40,000+ ET Open signatures |
+| **Network IDS** | Suricata | Deep packet inspection with ET Open + abuse.ch signatures |
+| **Custom Rules** | Suricata | 30+ built-in rules (DNS exfil, C2 beaconing, crypto mining, lateral movement, reverse shells) |
 | **Protocol Analysis** | Suricata | HTTP, DNS, TLS, SMB, SSH, and 20+ protocol parsers |
 | **TLS Fingerprinting** | Suricata | JA3/JA4 fingerprints to identify malware and suspicious clients |
 | **DNS Monitoring** | Suricata | Full query/response logging, NXDOMAIN tracking for DGA detection |
@@ -158,7 +167,8 @@ No local bouncer. CrowdSec's LAPI is exposed so external bouncers can pull decis
 CrowdSec Engine (LAPI exposed on :8080)
     ├──→ pfSense / OPNsense (native CrowdSec plugin)
     ├──→ MikroTik / OpenWrt (router sync script)
-    └──→ Cloudflare / AWS WAF (CDN bouncer)
+    ├──→ Cloudflare / AWS WAF (CDN bouncer)
+    └──→ nginx / HAProxy (web server bouncer)
 ```
 
 ```bash
@@ -183,6 +193,9 @@ make router-sync-daemon
 | OpenWrt | ipset/nftables set via luci-rpc |
 | Any REST API | Generic JSON webhook |
 | Cloudflare | CDN edge blocking |
+| AWS WAF | Cloud WAF rules |
+| nginx | HTTP access control |
+| HAProxy | Backend blocking |
 
 ---
 
@@ -223,6 +236,16 @@ Key environment variables in `.env`:
 | `GRAFANA_PORT` | 3001 | Grafana port (avoids SIB conflict on 3000) |
 | `ROUTER_TYPE` | (none) | Router type for sensor mode sync |
 | `PRIVACY_MODE` | (none) | Set to `alerts-only` for privacy-conscious deployments |
+
+### Port Mirroring (Sensor Mode)
+
+| Switch | Setup Guide |
+|--------|-------------|
+| **UniFi** | Ports tab → Port Mirroring → Select source/destination |
+| **TP-Link Omada** | Ports tab → Port Mirroring (IDS only, no bouncer yet) |
+| **MikroTik** | Full support with `ROUTER_TYPE=mikrotik` |
+| **Cisco** | Monitor session CLI or web UI |
+| **Netgear** | Monitoring → Mirroring |
 
 ---
 

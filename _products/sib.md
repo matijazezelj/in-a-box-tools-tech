@@ -50,18 +50,17 @@ STACK=vm        # Default - VictoriaMetrics ecosystem
 
 ---
 
-## 📋 Prerequisites
-
-- **Docker** CE 20.10+ or **Podman** 4.0+ (rootful mode)
-- **Docker Compose** v2+
-- **Linux kernel** 5.8+ (for eBPF support)
-- **Make** utility
-
----
-
 ## 🧠 How It Works
 
 > **Not a network sniffer!** SIB uses Falco's eBPF-based syscall monitoring — it watches what programs do at the kernel level, not network packets. No mirror ports, TAPs, or bridge interfaces needed. Just install on any Linux host with kernel 5.8+ and it sees everything that host does.
+
+### Prerequisites
+
+- **Docker CE** 20.10+ from [docker.com](https://docs.docker.com/engine/install/) with Docker Compose v2+, or **Podman** 4.0+ in rootful mode
+- **Linux kernel** 5.8+ (for modern_ebpf driver)
+- **4GB+ RAM** recommended
+
+> ⚠️ **Note**: Docker Desktop is not supported. Install Docker CE (Community Edition) directly from docker.com or use Podman.
 
 ### Hardware Requirements
 
@@ -69,7 +68,7 @@ STACK=vm        # Default - VictoriaMetrics ecosystem
 |-------|-----|-----|------|-------|
 | **SIB Server (single host)** | 2 cores | 4GB | 20GB | Runs Falco + full stack |
 | **SIB Server (with fleet)** | 4 cores | 8GB | 50GB+ | More storage for logs from multiple hosts |
-| **Fleet Agent** | 1 core | 512MB | 1GB | Falco + Alloy only |
+| **Fleet Agent** | 1 core | 512MB | 1GB | Falco + collectors (vmagent or Alloy) |
 
 ---
 
@@ -104,19 +103,6 @@ All detection rules are mapped to **MITRE ATT&CK** techniques.
 
 ---
 
-## 🔌 Access Endpoints
-
-Once installed, you can access:
-
-| Service | Endpoint | Notes |
-|---------|----------|-------|
-| **Grafana** | `http://localhost:3000` | Default credentials: admin/admin |
-| **Falcosidekick API** | `http://localhost:2801` | Alert routing status |
-| **VictoriaLogs** | `http://localhost:9428` | VM stack only |
-| **Loki** | `http://localhost:3100` | Grafana stack only |
-
----
-
 ## 📊 Security Dashboards
 
 ### MITRE ATT&CK Coverage
@@ -138,19 +124,6 @@ Filter by priority, rule name, hostname, and drill down into specific events wit
 Monitor multiple hosts with CPU, memory, disk, and network metrics. Hostname selector filters all panels to focus on individual hosts.
 
 ![Fleet Overview](/assets/images/sib/fleet-overview.png)
-
----
-
-## 🔍 Comparison (Wazuh, Splunk, Elastic)
-
-| Tool | Pros | Cons | Best for |
-|------|------|------|----------|
-| **SIB** | One-command setup, Falco runtime detection, curated Grafana dashboards, self-hosted | Not a full log SIEM platform, Linux-only detection | Homelabs, startups, lean SecOps teams | 
-| **Wazuh** | Strong host-based SIEM, broad OS support, built-in agents | Heavier setup, more tuning required, multi-component stack | Organizations needing HIDS + log SIEM | 
-| **Splunk** | Powerful search/analytics, enterprise-grade scale | Expensive at scale, complex operations | Large enterprises with budget and dedicated SIEM team | 
-| **Elastic SIEM** | Flexible, open-source core, great search | Requires careful sizing/tuning, operational overhead | Teams already using Elastic Stack | 
-
-**Takeaway:** SIB prioritizes **speed of deployment** and **actionable runtime detection**. For large-scale log analytics and complex compliance reporting, Wazuh/Splunk/Elastic may be a better fit.
 
 ---
 
@@ -207,16 +180,6 @@ Bring your existing detection rules. SIB includes a converter that transforms Si
 make convert-sigma
 ```
 
-### Included Sample Rules
-
-| Rule | Description | MITRE Tactic |
-|------|-------------|--------------|
-| `crypto_mining.yml` | Detects cryptocurrency miners | Impact (T1496) |
-| `shadow_access.yml` | Password file access | Credential Access (T1003) |
-| `ssh_keys.yml` | SSH private key access | Credential Access (T1552) |
-| `reverse_shell.yml` | Reverse shell patterns | Execution (T1059) |
-| `container_escape.yml` | Container breakout attempts | Privilege Escalation (T1611) |
-
 The entire [Sigma community rules ecosystem](https://github.com/SigmaHQ/sigma) is available to you.
 
 ---
@@ -240,9 +203,107 @@ make update-threatintel
 
 ---
 
+## 🚀 Fleet Management
+
+Got more than one server? SIB includes Ansible-based fleet management — no local Ansible needed, it runs in Docker.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    SIB Central Server                    │
+│  ┌─────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────┐       │
+│  │ Grafana │ │ Log Storage  │ │ Metrics DB   │ │Sidekick │       │
+│  └─────────┘ └──────────────┘ └──────────────┘ └─────────┘       │
+└─────────────────────────▲──────────────▲────────────────┘
+                          │              │
+     ┌────────────────────┼──────────────┼────────────────┐
+     │   Host A           │   Host B     │   Host C       │
+     │ Falco + Alloy ─────┴──────────────┴─── ...         │
+     └────────────────────────────────────────────────────┘
+```
+
+### Deployment Strategy
+
+SIB supports both native packages and Docker containers:
+
+| Strategy | Description |
+|----------|-------------|
+| **auto** (default) | Use Docker if available, otherwise native |
+| **docker** | Run agents as containers. **Recommended for simplicity.** |
+| **native** | Falco from repo as systemd service |
+
+> **Note:** VM stack collectors (Vector, vmagent, node_exporter) always run as Docker containers. The strategy setting primarily affects Falco deployment.
+
+> ⚠️ **LXC Limitation:** Falco cannot run in LXC containers due to kernel access restrictions. Use VMs or run Falco on the LXC host itself.
+
+```bash
+# Configure your hosts
+cp ansible/inventory/hosts.yml.example ansible/inventory/hosts.yml
+
+# Test connectivity
+make fleet-ping
+
+# Deploy agents to all hosts
+make deploy-fleet
+
+# Or target specific hosts
+make deploy-fleet LIMIT=webserver
+```
+
+---
+
+## 📡 Remote Collectors
+
+Deploy lightweight collectors to ship logs and metrics from remote hosts to your central SIB server.
+
+| SIB Stack | Collectors | Components |
+|-----------|------------|------------|
+| `vm` (default) | VM Collectors | Vector (logs) + vmagent + node_exporter (metrics) |
+| `grafana` | Alloy | Grafana Alloy (logs + metrics) |
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Hub and Spoke Model                    │
+├─────────────────────────────────────────────────────────┤
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐          │
+│  │   Host A   │  │   Host B   │  │   Host C   │          │
+│  │(Collectors)│  │(Collectors)│  │(Collectors)│          │
+│  └──────┬─────┘  └──────┬─────┘  └──────┬─────┘          │
+│        │            │            │                   │
+│        └────────────┼────────────┘                   │
+│                     │                                    │
+│           ┌──────────────────┐                          │
+│           │    SIB Server    │                          │
+│           │  VictoriaLogs    │  ◀ Logs                   │
+│           │  VictoriaMetrics │  ◀ Metrics                │
+│           │  Grafana         │  ◀ Fleet Overview         │
+│           └──────────────────┘                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+```bash
+# Enable external access for collectors
+make enable-remote
+
+# Deploy collector to remote host
+make deploy-collector HOST=user@remote-host
+```
+
+### What Gets Collected
+
+| Type | Sources | Labels |
+|------|---------|--------|
+| **System Logs** | `/var/log/syslog`, `/var/log/messages` | `job="syslog"` |
+| **Auth Logs** | `/var/log/auth.log`, `/var/log/secure` | `job="auth"` |
+| **Kernel Logs** | `/var/log/kern.log` | `job="kernel"` |
+| **Journal** | systemd journal | `job="journal"` |
+| **Docker Logs** | All containers | `job="docker"` |
+| **Node Metrics** | CPU, memory, disk, network | `job="node"` |
+
+---
+
 ## 🎭 Demo Mode
 
-Generate realistic security events **locally on your SIB server** — no fleet setup required!
+Generate realistic security events **locally on your SIB server** — no fleet setup required. Perfect for first-time users, demonstrations, or testing detection capabilities.
 
 ```bash
 # Run comprehensive demo (~30 events across 9 MITRE ATT&CK categories)
@@ -268,92 +329,14 @@ make demo-quick
 
 ---
 
-## 🚀 Fleet Management
+## 🔍 Comparison
 
-Got more than one server? SIB includes Ansible-based fleet management — no local Ansible needed, it runs in Docker.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    SIB Central Server                    │
-│  ┌─────────┐ ┌──────────────┐ ┌──────────────┐          │
-│  │ Grafana │ │ Log Storage  │ │ Metrics DB   │          │
-│  └─────────┘ └──────────────┘ └──────────────┘          │
-└─────────────────────────▲──────────────▲────────────────┘
-                          │              │
-     ┌────────────────────┼──────────────┼────────────────┐
-     │   Host A           │   Host B     │   Host C       │
-     │ Falco + Alloy ─────┴──────────────┴─── ...         │
-     └────────────────────────────────────────────────────┘
-```
-
-### Deployment Strategy
-
-| Strategy | Description |
-|----------|-------------|
-| **native** (default) | Falco from repo + Alloy as systemd service. Recommended for best visibility. |
-| **docker** | Run agents as containers |
-| **auto** | Use Docker if available, otherwise native |
-
-> **Why native is recommended:** Native deployment sees all host processes, while Docker-based Falco may miss events from processes outside its container namespace.
-
-> ⚠️ **LXC Limitation:** Falco cannot run in LXC containers due to kernel access restrictions. Use VMs or run Falco on the LXC host itself.
-
-```bash
-# Configure your hosts
-cp ansible/inventory/hosts.yml.example ansible/inventory/hosts.yml
-
-# Test connectivity
-make fleet-ping
-
-# Deploy agents to all hosts
-make deploy-fleet
-```
-
-### Fleet Commands
-
-| Command | Description |
-|---------|-------------|
-| `make deploy-fleet` | Deploy Falco + Alloy to all fleet hosts |
-| `make update-rules` | Push detection rules to fleet |
-| `make fleet-health` | Check health of all agents |
-| `make fleet-docker-check` | Check/install Docker on fleet hosts |
-| `make fleet-ping` | Test SSH connectivity |
-| `make fleet-shell` | Open shell in Ansible container |
-| `make remove-fleet` | Remove agents from fleet |
-
----
-
-## 📡 Remote Collectors
-
-Deploy lightweight collectors to ship logs and metrics from remote hosts to your central SIB server.
-
-### Collector Stacks
-
-| SIB Stack | Collectors | Components |
-|-----------|------------|------------|
-| `vm` (default) | VM Collectors | Vector (logs) + vmagent + node_exporter (metrics) |
-| `grafana` | Alloy | Grafana Alloy (logs + metrics) |
-
-### Enable Remote Mode
-
-```bash
-# On the SIB server, enable external access for collectors
-make enable-remote
-
-# Deploy collector to remote host
-make deploy-collector HOST=user@remote-host
-```
-
-### What Gets Collected
-
-| Type | Sources | Labels |
-|------|---------|--------|
-| **System Logs** | `/var/log/syslog`, `/var/log/messages` | `job="syslog"` |
-| **Auth Logs** | `/var/log/auth.log`, `/var/log/secure` | `job="auth"` |
-| **Kernel Logs** | `/var/log/kern.log` | `job="kernel"` |
-| **Journal** | systemd journal | `job="journal"` |
-| **Docker Logs** | All containers | `job="docker"`, `container=...` |
-| **Node Metrics** | CPU, memory, disk, network | `job="node"` |
+| Tool | Pros | Cons | Best for |
+|------|------|------|----------|
+| **SIB** | One-command setup, Falco runtime detection, curated dashboards, self-hosted | Not a full log SIEM platform, Linux-only detection | Homelabs, startups, lean SecOps teams |
+| **Wazuh** | Strong host-based SIEM, broad OS support, built-in agents | Heavier setup, more tuning required | Organizations needing HIDS + log SIEM |
+| **Splunk** | Powerful search/analytics, enterprise-grade scale | Expensive at scale, complex operations | Large enterprises with budget and dedicated SIEM team |
+| **Elastic SIEM** | Flexible, open-source core, great search | Requires careful sizing/tuning, operational overhead | Teams already using Elastic Stack |
 
 ---
 
@@ -369,7 +352,8 @@ make start                # Start all services
 make stop                 # Stop all services
 make restart              # Restart all services
 make status               # Show service status
-make health               # Verify all services operational
+make health               # Quick health check
+make doctor               # Diagnose common issues
 
 # Logs
 make logs                 # Tail all logs
@@ -393,7 +377,22 @@ make logs-analysis        # View analysis API logs
 make deploy-fleet         # Deploy Falco + Alloy to all fleet hosts
 make update-rules         # Push detection rules to fleet
 make fleet-health         # Check health of all agents
+make fleet-docker-check   # Check/install Docker on fleet hosts
 make fleet-ping           # Test SSH connectivity
+make fleet-shell          # Open shell in Ansible container
+make remove-fleet         # Remove agents from fleet
+
+# Remote Collectors
+make enable-remote        # Enable external access for collectors
+make deploy-collector     # Deploy collector to remote host
+
+# Remote Collectors
+make enable-remote        # Enable external access for collectors
+make deploy-collector     # Deploy collector to remote host
+
+# Backup & Restore
+make backup               # Create timestamped backup
+make restore              # Restore from a backup file
 
 # Utilities
 make open                 # Open Grafana in browser
@@ -402,7 +401,17 @@ make info                 # Show all endpoints
 
 ---
 
-## 👥 Who This Is For
+## � Security & Hardening
+
+- Internal services (Loki, Prometheus) bind to localhost only
+- Grafana and Sidekick API are externally accessible (for fleet support)
+- Falco requires privileged access for syscall monitoring
+- **mTLS available** for encrypted fleet communication (`make generate-certs`)
+- Change default Grafana password in production
+
+---
+
+## �👥 Who This Is For
 
 - **Small security teams** who need visibility but don't have SIEM budget
 - **Homelab enthusiasts** who want to monitor their infrastructure properly

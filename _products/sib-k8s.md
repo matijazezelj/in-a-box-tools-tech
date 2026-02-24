@@ -15,28 +15,21 @@ permalink: /products/sib-k8s/
 ## ⚡ Quick Start
 
 ```bash
-# Add the Helm repository
+# Add the Helm repository (when published)
 helm repo add sib-k8s https://matijazezelj.github.io/sib-k8s
 helm repo update
 
+# Or install from the chart repo
+git clone https://github.com/matijazezelj/sib-k8s.git
+cd sib-k8s
+
 # Install for generic Kubernetes (webhook-based)
-helm install sib-k8s sib-k8s/sib-k8s \
+helm install sib-k8s . \
   -f values-k8saudit.yaml \
   -n sib-k8s --create-namespace
-
-# Or install from source
-git clone https://github.com/matijazezelj/sib-k8s.git && cd sib-k8s
-helm install sib-k8s . -f values-k8saudit.yaml -n sib-k8s --create-namespace
 ```
 
-Access Grafana:
-```bash
-kubectl port-forward -n sib-k8s svc/sib-k8s-grafana 3000:80
-
-# Get the admin password
-kubectl get secret -n sib-k8s sib-k8s-grafana \
-  -o jsonpath="{.data.admin-password}" | base64 -d
-```
+Access Grafana at `kubectl port-forward -n sib-k8s svc/sib-k8s-grafana 3000:80` and start monitoring.
 
 ---
 
@@ -138,6 +131,26 @@ helm install sib-k8s . \
 
 ## ✨ Key Features
 
+### Why SIB-K8s?
+
+| | SIB-K8s | Falco + Falcosidekick | Sysdig Secure | Aqua / StackRox | Wazuh |
+|---|---|---|---|---|---|
+| Deployment | Single Helm chart | Manual wiring | SaaS / agent | SaaS / operator | Server + agents |
+| AI analysis | Built-in (Ollama, OpenAI, Anthropic) | None | Proprietary | None | None |
+| Privacy obfuscation | Yes (3 levels) | N/A | No (data sent to vendor) | No | No |
+| Multi-cloud audit | EKS, GKE, AKS, webhook | Plugin per cloud | EKS, GKE | EKS, GKE, AKS | Manual config |
+| MITRE ATT&CK mapping | Automatic (AI) | Manual rules | Yes | Yes | Yes |
+| Dashboards | Included (Grafana) | BYO | Proprietary | Proprietary | Included |
+| Cost | Free / open source | Free / open source | Commercial | Commercial | Free / commercial |
+| Self-hosted LLM | Yes (Ollama) | N/A | No | No | No |
+
+**Key differentiators:**
+
+- **One `helm install`** — Falco, Falcosidekick, Loki, Grafana, and the AI analyzer are deployed and wired together automatically
+- **Privacy-first AI** — alerts are obfuscated before reaching any LLM. Sensitive data never leaves your control at standard/paranoid levels
+- **Bring your own LLM** — run Ollama in-cluster for fully air-gapped analysis, or use OpenAI/Anthropic
+- **Cloud-native audit out of the box** — switch between webhook, CloudWatch, Cloud Logging, or Event Hub by changing a single value
+
 ### Security Monitoring
 - **Runtime security detection** with Falco's eBPF-based syscall monitoring
 - **K8s audit log analysis** with MITRE ATT&CK mapping
@@ -187,10 +200,17 @@ The analysis service protects sensitive data before sending to LLM providers:
 
 SIB-K8s includes pre-built dashboards:
 
-| Dashboard | Description |
-|-----------|-------------|
-| **SIB-K8s Overview** | Summary of all security events across your cluster |
-| **K8s Audit Events** | Kubernetes API audit analysis with drill-down capabilities |
+1. **SIB-K8s Overview** — Summary of all security events across your cluster
+2. **K8s Audit Events** — Kubernetes API audit analysis with drill-down capabilities
+
+Access Grafana:
+```bash
+kubectl port-forward -n sib-k8s svc/sib-k8s-grafana 3000:80
+
+# Get the admin password
+kubectl get secret -n sib-k8s sib-k8s-grafana \
+  -o jsonpath="{.data.admin-password}" | base64 -d
+```
 
 ---
 
@@ -274,7 +294,9 @@ customRules:
 - **For syscall monitoring:** Linux kernel 5.8+ (for modern_ebpf driver)
 - **For AI analysis:** Access to LLM provider (Ollama, OpenAI, or Anthropic)
 
-> **Note:** For traditional Linux infrastructure monitoring (non-Kubernetes), check out [SIB](/products/sib/) instead.
+See [Cloud-Agnostic Deployment Scenarios](https://github.com/matijazezelj/sib-k8s/blob/main/docs/cloud-agnostic-scenarios.md) for detailed cloud-specific setup (IAM roles, Workload Identity, Event Hub, etc.).
+
+For Talos Linux clusters, see [Talos Audit Setup](https://github.com/matijazezelj/sib-k8s/blob/main/docs/talos-audit-setup.md).
 
 ---
 
@@ -311,7 +333,14 @@ This chart ships with Kubernetes security best practices enabled by default:
 - `capabilities.drop: [ALL]`
 - `seccompProfile: RuntimeDefault`
 
+The only exception is `hostNetwork` for the webhook receiver, which is required for API server connectivity.
+
 For production: pin image tags, deploy to a dedicated namespace, and enable network policies.
+
+```bash
+# Scan for vulnerabilities
+trivy fs --scanners vuln,secret,misconfig .
+```
 
 ## 👥 Who This Is For
 
